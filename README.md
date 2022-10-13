@@ -163,13 +163,13 @@ Take the configuration of back test as an example:
     After modifying the information in the correspoding configuration file in `config`, run:
 
     ```
-    python back_test.py
+    python backtest.py
     ```
     After completion, all expected results will wait for you in the `result` folder.
 
 
 ## Outputs
-structure(one output for each paper(1-11), all combine totger one output), one output three charts and a summary.csv| each folder  
+structure(one output for each paper(1-11), all combine totger one output), one output three charts and a summary.csv for each folder  
 ex: screenshot (kpi_result_9 for paper9)
 Sample folder: Please copy and paste the following conifg into back_test.json
 
@@ -253,6 +253,6 @@ Considering different combinations of `train_valid_period` and `test_period`, in
 		
 
 ## TODO List
-To allow features with daily frequency to be fed into the ml model
-To include stocks in the Nasdaq and other widely used indices in our model
-Multidimensional heatmap
+- To allow features with daily frequency to be fed into the ml model
+- To include stocks in the Nasdaq and other widely used indices in our model
+- Multidimensional heatmap
