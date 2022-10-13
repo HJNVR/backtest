@@ -171,7 +171,7 @@ Take the configuration of back test as an example:
 ## Outputs
 structure(one output for each paper(1-11), all combine totger one output), one output three charts and a summary.csv for each folder  
 ex: screenshot (kpi_result_9 for paper9)
-Sample folder: Please copy and paste the following conifg into back_test.json
+- Sample folder: Please copy and paste the following conifg into back_test.json
 
 ```
 {   "ml_config": "Below are config settings for ML model",
