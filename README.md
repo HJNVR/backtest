@@ -111,7 +111,7 @@ Definitions of configurations:
                 "threshold": 0.1
                 },
     "common_settings" :{
-                "paper_id_comment" : "choose from ['all', 'paper1', 'paper3', 'paper4', 'paper6', 'paper7', 'paper9', 'paper11', 'sample']",
+                "paper_id_comment" : "choose from ['all', 'paper1', 'paper3', 'paper4', 'paper6', 'paper7', 'paper9', 'paper11']",
                 "paper_id" : "paper9",
                 "debug_mode_comment" : "T/F",
                 "debug_mode" : "F",
