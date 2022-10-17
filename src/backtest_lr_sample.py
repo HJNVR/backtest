@@ -322,8 +322,6 @@ class BackTest:
             while cnt < topk:
                 # select the ticker name with rank number `idx`
                 ticker_name = outputs.iloc[idx, :]['ticker']
-                print(ticker_name)
-                print('cnt', cnt, 'and idx', idx)
                 # select the daily changing prices of this ticker
                 et = predict_dates[-1] + pd.tseries.offsets.MonthEnd(n=1)
                 try: 

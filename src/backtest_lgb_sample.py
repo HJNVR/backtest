@@ -43,7 +43,6 @@ class BackTest:
         self.df = self.backtest_dataset.get_paper_features()
         self.daily_prc = self.backtest_dataset.get_daily_prc()
         self.pf_daily_trend = pd.DataFrame()
-        self.df_copy = self.df.copy()
 
          # get necessary config parameters
         self.train_end_date = pd.to_datetime(self.backtest_config.train_end_ym, format='%Y%m')
@@ -305,10 +304,9 @@ class BackTest:
 
             outputs = test_data[self.dummy_cols + [y_col]].copy()
             outputs[pred_col] = model.predict(X_test)
-            outputs['fut_ret'] = self.df_copy.query(f'date == "{predict_date}"')['fut_ret1']
             # descending sort values to select topk-stocks
-            #outputs = outputs.sort_values(by=[pred_col], ascending=False)
-            outputs = outputs.sort_values(by=[pred_col, 'fut_ret'], ascending=[False, False])
+            outputs = outputs.sort_values(by=[pred_col], ascending=False)
+            #outputs = outputs.sort_values(by=[pred_col, 'fut_ret'], ascending=[False, False])
             # find out the legal ticker will have how many days recording during `test_period` months
             ideal_ser_num = sum([self.counting_max[(pdt.year, pdt.month)] for pdt in predict_dates])
             # equally separate investment to `topk` folds
