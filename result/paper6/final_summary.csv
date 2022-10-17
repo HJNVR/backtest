@@ -1,2 +1,0 @@
-start date,end date,train_valid_period(years),test_period(months),train_period(years),topk,feature_selection,Annual Return,MDD,Calmar Ratio
-2017-02-01,2017-02-28,16,1,10,10,,0.0268,-0.0205,1.3073170731707318

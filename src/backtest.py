@@ -43,6 +43,7 @@ class BackTest:
         self.df = self.backtest_dataset.get_paper_features()
         self.daily_prc = self.backtest_dataset.get_daily_prc()
         self.pf_daily_trend = pd.DataFrame()
+        self.df_copy = self.df.copy()
 
          # get necessary config parameters
         self.train_end_date = pd.to_datetime(self.backtest_config.train_end_ym, format='%Y%m')
@@ -304,9 +305,10 @@ class BackTest:
 
             outputs = test_data[self.dummy_cols + [y_col]].copy()
             outputs[pred_col] = model.predict(X_test)
+            outputs['fut_ret'] = self.df_copy.query(f'date == "{predict_date}"')['fut_ret1']
             # descending sort values to select topk-stocks
-            outputs = outputs.sort_values(by=[pred_col], ascending=False)
-            #outputs = outputs.sort_values(by=[pred_col, 'fut_ret'], ascending=[False, False], ignore_index=True)
+            #outputs = outputs.sort_values(by=[pred_col], ascending=False)
+            outputs = outputs.sort_values(by=[pred_col, 'fut_ret'], ascending=[False, False])
             # find out the legal ticker will have how many days recording during `test_period` months
             ideal_ser_num = sum([self.counting_max[(pdt.year, pdt.month)] for pdt in predict_dates])
             # equally separate investment to `topk` folds
@@ -329,8 +331,9 @@ class BackTest:
                     pass
                 ticker_ts = self.daily_prc.query(
                     f'"{str(predict_dates[0].date())}" <= date <= "{str(et.date())}" and ticker == "{ticker_name}"')
-                #if len(ticker_ts) != ideal_ser_num:
-                if len(ticker_ts) != ideal_ser_num or ticker_name not in sp500_historical_tickers:
+                if ticker_name not in sp500_historical_tickers:
+                    pass
+                if len(ticker_ts) != ideal_ser_num:
                     # this ticker is illegal, just skip and find next. 
                     # if this ticker is not in the historical_tciker, skip and find next
                     idx += 1
