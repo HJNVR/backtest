@@ -329,6 +329,7 @@ class BackTest:
                     pass
                 ticker_ts = self.daily_prc.query(
                     f'"{str(predict_dates[0].date())}" <= date <= "{str(et.date())}" and ticker == "{ticker_name}"')
+                #if len(ticker_ts) != ideal_ser_num:
                 if len(ticker_ts) != ideal_ser_num or ticker_name not in sp500_historical_tickers:
                     # this ticker is illegal, just skip and find next. 
                     # if this ticker is not in the historical_tciker, skip and find next
@@ -343,6 +344,7 @@ class BackTest:
                     # record daily price for this ticker, this list will store value changes for each top-k ticker
                     # it will be summed in next code to represent the portfolio changes
                     if sum(np.isnan(purchase_amount * ticker_ts['adjclose'].values)) > 0:
+                        print(ticker_name)
                         idx += 1
                         continue
                     ticker_recs_this_month.append(purchase_amount * ticker_ts['adjclose'].values)

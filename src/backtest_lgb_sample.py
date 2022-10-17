@@ -329,7 +329,8 @@ class BackTest:
                     pass
                 ticker_ts = self.daily_prc.query(
                     f'"{str(predict_dates[0].date())}" <= date <= "{str(et.date())}" and ticker == "{ticker_name}"')
-                if len(ticker_ts) != ideal_ser_num or ticker_name not in sp500_historical_tickers:
+                if len(ticker_ts) != ideal_ser_num:
+                #if len(ticker_ts) != ideal_ser_num or ticker_name not in sp500_historical_tickers:
                     # this ticker is illegal, just skip and find next. 
                     # if this ticker is not in the historical_tciker, skip and find next
                     idx += 1
@@ -529,7 +530,7 @@ if __name__ == "__main__":
     print('Currently [LightGBM Sample of', backtest.backtest_config.paper_id.lower(), '] is processing')
     backtest.train()
     backtest.plot()
-    print('Please check result paper folders for results.')
+    print('Please check result sample folders for results.')
     end = time.time()
     hours, rem = divmod(end-start, 3600)
     minutes, seconds = divmod(rem, 60)

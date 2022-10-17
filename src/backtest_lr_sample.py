@@ -529,7 +529,7 @@ if __name__ == "__main__":
     print('Currently [Logistic Regression Sample of', backtest.backtest_config.paper_id.lower(), '] is processing')
     backtest.train()
     backtest.plot()
-    print('Please check result paper folders for results.')
+    print('Please check result sample folders for results.')
     end = time.time()
     hours, rem = divmod(end-start, 3600)
     minutes, seconds = divmod(rem, 60)
