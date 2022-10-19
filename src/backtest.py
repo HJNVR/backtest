@@ -43,7 +43,6 @@ class BackTest:
         self.df = self.backtest_dataset.get_paper_features()
         self.daily_prc = self.backtest_dataset.get_daily_prc()
         self.pf_daily_trend = pd.DataFrame()
-        self.df_copy = self.df.copy()
 
          # get necessary config parameters
         self.train_end_date = pd.to_datetime(self.backtest_config.train_end_ym, format='%Y%m')
