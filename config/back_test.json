@@ -14,7 +14,7 @@
                 "tune_trials": 1,
                 "method_comment" : "logisitc regression, xgboost",
                 "md": "lr",
-                "fs_commnent" : "available feature selection methods: lgb, boruta, empty, rfecv, mi",
+                "fs_commnent" : "available feature selection methods: boruta, empty, rfecv, mi",
                 "fs": ["mi", ""],
                 "y_col_prefix": "fut_ret",
                 "primary_key": ["ticker", "permno", "date"]
@@ -26,7 +26,7 @@
                 },
     "common_settings" :{
                 "paper_id_comment" : "choose from ['all', 'paper1', 'paper3', 'paper4', 'paper6', 'paper7', 'paper9', 'paper11']",
-                "paper_id" : "paper7",
+                "paper_id" : "paper6",
                 "debug_mode_comment" : "T/F",
                 "debug_mode" : "F",
                 "parallel_compute_comment" : "T/F number of virtual machine",
