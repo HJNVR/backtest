@@ -92,8 +92,8 @@ class BacktestConfig:
             raise ValueError('invalid sampler value')
 
         # logistic regression parameters
-        self.percentile = self.args['logistic_parameters']['percentile']
-        self.threshold = self.args['logistic_parameters']['threshold']
+        #self.percentile = self.args['logistic_parameters']['percentile']
+        #self.threshold = self.args['logistic_parameters']['threshold']
 
     def get_kpi_result_path(self):
         if self.is_lr_sample:
@@ -140,6 +140,33 @@ class BacktestConfig:
             return self.paper9_final_summary_path
         elif self.paper_id.lower() == 'paper11':
             return self.paper11_final_summary_path
+        else:
+            raise ValueError('invalid paper id')
+
+    def get_lr_percentile_threshold(self):
+        #`logisitc_parameters` : 
+        #`percentile` : rank and obtain stocks with the top 20% future return
+        # `threshold` : convert future return to 1, if future return >= threshold. Otherwise, convert future return to -1, if future return < threshold.
+        if self.is_lr_sample:
+            return 0.25, 0.15
+        elif self.is_lgb_sample:
+            return 0.25, 0.15
+        elif self.paper_id.lower() == 'all':
+            return 0.1, 0.2
+        elif self.paper_id.lower() == 'paper1':
+            return 0.2, 0.3
+        elif self.paper_id.lower() == 'paper3':
+            return 0.25, 0.15
+        elif self.paper_id.lower() == 'paper4':
+            return 0.05, 0.35
+        elif self.paper_id.lower() == 'paper6':
+            return 0.05, 0.35
+        elif self.paper_id.lower() == 'paper7':
+            return 0.2, 0.3
+        elif self.paper_id.lower() == 'paper9':
+            return 0.25, 0.15
+        elif self.paper_id.lower() == 'paper11':
+            return 0.25, 0.2
         else:
             raise ValueError('invalid paper id')
 

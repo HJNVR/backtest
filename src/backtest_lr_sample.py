@@ -57,6 +57,7 @@ class BackTest:
         self.money = self.backtest_config.money
         self.md = self.backtest_config.md
         self.sampler = self.backtest_config.sampler
+        self.percentile, self.threshold = self.backtest_config.get_lr_percentile_threshold()
 
         self.y_cols = [f'fut_ret{col}' for col in self.test_period]
         self.dummy_cols = self.backtest_config.dummy_cols + ['trade_date']
@@ -115,7 +116,7 @@ class BackTest:
     # main train 
     def train(self):
         if self.md.lower() == 'lr': # sort and get top percentile stocks
-            self.choose_by_percentile(self.df, self.backtest_config.percentile, self.backtest_config.threshold)
+            self.choose_by_percentile(self.df, self.percentile, self.threshold)
             
         pred_col = 'pred_ret'
 

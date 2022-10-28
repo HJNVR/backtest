@@ -56,6 +56,7 @@ class BackTest:
         self.money = self.backtest_config.money
         self.md = self.backtest_config.md
         self.sampler = self.backtest_config.sampler
+        self.percentile, self.threshold = self.backtest_config.get_lr_percentile_threshold()
 
         self.y_cols = [f'fut_ret{col}' for col in self.test_period]
         self.dummy_cols = self.backtest_config.dummy_cols + ['trade_date']
@@ -111,16 +112,86 @@ class BackTest:
             }
         return param
 
+    def get_final_summary_path(self):
+        path = self.backtest_config.get_final_summary_path()
+        if self.md.lower() == 'lr':
+            return path[:3] + 'lr_' + path[3:]
+        if self.md.lower() == 'lgb':
+            return path[:3] + 'lgb_' + path[3:]
+
+    def get_kpi_result_path(self):
+        path = self.backtest_config.get_kpi_result_path()
+        if self.md.lower() == 'lr':
+            return path[:3] + 'lr_' + path[3:]
+        if self.md.lower() == 'lgb':
+            return path[:3] + 'lgb_' + path[3:]
+
+    def set_suptitle(self, fig):
+        if self.md.lower() == 'lr':
+            if self.backtest_config.paper_id.lower() == 'paper1':
+                fig.suptitle('Paper 1. Empirical asset pricing via machine learning | Logistic | (2017,2022)', \
+                            fontsize=25, weight='bold')
+            elif self.backtest_config.paper_id.lower() == 'paper3':
+                fig.suptitle('Paper 3. Dissecting Characteristics Nonparametrically | Logistic | (2017,2022)', \
+                            fontsize=25, weight='bold')
+            elif self.backtest_config.paper_id.lower() == 'paper4':
+                fig.suptitle('Paper 4. Shrinking the cross-section | Logistic | (2017,2022)', \
+                            fontsize=25, weight='bold')
+            elif self.backtest_config.paper_id.lower() == 'paper6':
+                fig.suptitle('Paper 6. Forecasting the Equity Risk Premium - The Role of Technical Indicators | Logistic | (2017,2022)', \
+                            fontsize=25, weight='bold')
+            elif self.backtest_config.paper_id.lower() == 'paper7':
+                fig.suptitle('Paper 7. Deep Learning in Asset Pricing | Logistic | (2017,2022)', \
+                            fontsize=25, weight='bold')
+            elif self.backtest_config.paper_id.lower() == 'paper9':
+                fig.suptitle('Paper 9. Forecasting daily stock market return using dimensionality reduction | Logistic | (2017,2022)', \
+                            fontsize=25, weight='bold')
+            elif self.backtest_config.paper_id.lower() == 'paper11':
+                fig.suptitle('Paper 11. CNNpre d: CNN-base d stock market prediction using a diverse set of variables | Logistic | (2017,2022)', \
+                            fontsize=25, weight='bold')
+            elif self.backtest_config.paper_id.lower() == 'all':
+                fig.suptitle('Paper 1-11 consolidated features | Logistic | (2017,2022)', \
+                            fontsize=25, weight='bold')
+            else:
+                print('invalid paper id')
+        if self.md.lower() == 'lgb':
+            if self.backtest_config.paper_id.lower() == 'paper1':
+                fig.suptitle('Paper 1. Empirical asset pricing via machine learning | XGBoost | (2017,2022)', \
+                            fontsize=25, weight='bold')
+            elif self.backtest_config.paper_id.lower() == 'paper3':
+                fig.suptitle('Paper 3. Dissecting Characteristics Nonparametrically | XGBoost| (2017,2022)', \
+                            fontsize=25, weight='bold')
+            elif self.backtest_config.paper_id.lower() == 'paper4':
+                fig.suptitle('Paper 4. Shrinking the cross-section | XGBoost | (2017,2022)', \
+                            fontsize=25, weight='bold')
+            elif self.backtest_config.paper_id.lower() == 'paper6':
+                fig.suptitle('Paper 6. Forecasting the Equity Risk Premium - The Role of Technical Indicators | XGBoost | (2017,2022)', \
+                            fontsize=25, weight='bold')
+            elif self.backtest_config.paper_id.lower() == 'paper7':
+                fig.suptitle('Paper 7. Deep Learning in Asset Pricing | XGBoost | (2017,2022)', \
+                            fontsize=25, weight='bold')
+            elif self.backtest_config.paper_id.lower() == 'paper9':
+                fig.suptitle('Paper 9. Forecasting daily stock market return using dimensionality reduction | XGBoost | (2017,2022)', \
+                            fontsize=25, weight='bold')
+            elif self.backtest_config.paper_id.lower() == 'paper11':
+                fig.suptitle('Paper 11. CNNpre d: CNN-base d stock market prediction using a diverse set of variables | XGBoost | (2017,2022)', \
+                            fontsize=25, weight='bold')
+            elif self.backtest_config.paper_id.lower() == 'all':
+                fig.suptitle('Paper 1-11 consolidated features | XGBoost | (2017,2022)', \
+                            fontsize=25, weight='bold')
+            else:
+                print('invalid paper id')
+
     # main train 
     def train(self):
         if self.md.lower() == 'lr': # sort and get top percentile stocks
-            self.choose_by_percentile(self.df, self.backtest_config.percentile, self.backtest_config.threshold)
+            self.choose_by_percentile(self.df, self.percentile, self.threshold)
             
         pred_col = 'pred_ret'
 
         # record all the important results in a csv file
         #f = open(f'self.backtest_config.final_summary_path', 'w', encoding='utf-8')
-        f = open(self.backtest_config.get_final_summary_path(), 'w', encoding='utf-8')
+        f = open(self.get_final_summary_path(), 'w', encoding='utf-8')
         f.write('start date,end date,train_valid_period(years),test_period(months),train_period(years),topk,feature_selection,Annual Return,MDD,Calmar Ratio\n')
 
         while self.train_end_date < pd.to_datetime(self.backtest_config.end_date, format='%Y%m'):
@@ -191,7 +262,7 @@ class BackTest:
                         else:
                             _, select_ids = feature_selection(X_train, y_train, method=fs_tool, k=25)         
                     except:
-                        _, select_ids = feature_selection(X_train, y_train, method=fs_tool, k=5)       
+                        _, select_ids = feature_selection(X_train, y_train, method=fs_tool, k=15)       
 
                     if sum(select_ids) == 0:
                         select_ids = [True for _ in self.feat_cols]
@@ -283,7 +354,7 @@ class BackTest:
                 else:
                     _, select_ids = feature_selection(X_train, y_train, method=fs_tool, k=25)         
             except:
-                _, select_ids = feature_selection(X_train, y_train, method=fs_tool, k=5) 
+                _, select_ids = feature_selection(X_train, y_train, method=fs_tool, k=15) 
 
             #_, select_ids = X_train[:,select_feature_idx], select_feature_idx
             if sum(select_ids) == 0:
@@ -452,32 +523,7 @@ class BackTest:
         # Draw plots
         sns.set_theme(palette=sns.color_palette("Set1"))
         fig, ax = plt.subplots(nrows=3, ncols=1, figsize=(20, 15))
-        if self.backtest_config.paper_id.lower() == 'paper1':
-            fig.suptitle('Paper 1. Empirical asset pricing via machine learning | Logistic | (2017,2022)', \
-                        fontsize=25, weight='bold')
-        elif self.backtest_config.paper_id.lower() == 'paper3':
-            fig.suptitle('Paper 3. Dissecting Characteristics Nonparametrically | Logistic | (2017,2022)', \
-                        fontsize=25, weight='bold')
-        elif self.backtest_config.paper_id.lower() == 'paper4':
-            fig.suptitle('Paper 4. Shrinking the cross-section | Logistic | (2017,2022)', \
-                        fontsize=25, weight='bold')
-        elif self.backtest_config.paper_id.lower() == 'paper6':
-            fig.suptitle('Paper 6. Forecasting the Equity Risk Premium - The Role of Technical Indicators | Logistic | (2017,2022)', \
-                        fontsize=25, weight='bold')
-        elif self.backtest_config.paper_id.lower() == 'paper7':
-            fig.suptitle('Paper 7. Deep Learning in Asset Pricing | Logistic | (2017,2022)', \
-                        fontsize=25, weight='bold')
-        elif self.backtest_config.paper_id.lower() == 'paper9':
-            fig.suptitle('Paper 9. Forecasting daily stock market return using dimensionality reduction | Logistic | (2017,2022)', \
-                        fontsize=25, weight='bold')
-        elif self.backtest_config.paper_id.lower() == 'paper11':
-            fig.suptitle('Paper 11. CNNpre d: CNN-base d stock market prediction using a diverse set of variables | Logistic | (2017,2022)', \
-                        fontsize=25, weight='bold')
-        elif self.backtest_config.paper_id.lower() == 'all':
-            fig.suptitle('Paper 1-11 consolidated features | Logistic | (2017,2022)', \
-                        fontsize=25, weight='bold')
-        else:
-            print('invalid paper id')
+        self.set_suptitle(fig)
         ax[0].plot(np.arange(len(self.pf_daily_trend['date'])), self.pf_daily_trend['val'], label='Porfolio')
         ax[0].plot(np.arange(len(spy_daily['date'])), spy_daily['value'], label='SPY')
         ax[0].axhline(self.backtest_config.money, ls='--', c='grey', alpha=0.5)
@@ -545,7 +591,7 @@ class BackTest:
         ax[2].legend(fontsize=16)
 
         plt.tight_layout()
-        plt.savefig(self.backtest_config.get_kpi_result_path(), format='png')
+        plt.savefig(self.get_kpi_result_path(), format='png')
         plt.show()
         plt.close()
 

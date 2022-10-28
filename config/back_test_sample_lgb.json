@@ -20,10 +20,6 @@
                 "primary_key": ["ticker", "permno", "date"]
 
                 },
-    "logistic_parameters" : {
-                "percentile": 0.2,
-                "threshold": 0.1
-                },
     "common_settings" :{
                 "paper_id_comment" : "choose from ['all', 'paper1', 'paper3', 'paper4', 'paper6', 'paper7', 'paper9', 'paper11']",
                 "paper_id" : "paper9",
@@ -53,8 +49,8 @@
                 "paper9_final_summary_path" : "../result/paper9/final_summary.csv",
                 "paper11_final_summary_path" : "../result/paper11/final_summary.csv",
                 "consolidated_final_summary_path" : "../result/consolidated/final_summary.csv",
-                "lr_sample_final_summary_path" : "../result/sample/lr_sample_final_summary.csv",
-                "lgb_sample_final_summary_path" : "../result/sample/lgb_sample_final_summary.csv",
+                "lr_sample_final_summary_path" : "../lr_result/sample/lr_sample_final_summary.csv",
+                "lgb_sample_final_summary_path" : "../lgb_result/sample/lgb_sample_final_summary.csv",
                 "paper1_kpi_result_path" : "../result/paper1/backtest_kpi.png",
                 "paper3_kpi_result_path" : "../result/paper3/backtest_kpi.png",
                 "paper4_kpi_result_path" : "../result/paper4/backtest_kpi.png",
@@ -63,9 +59,9 @@
                 "paper9_kpi_result_path" : "../result/paper9/backtest_kpi.png",
                 "paper11_kpi_result_path" : "../result/paper11/backtest_kpi.png",
                 "consolidated_kpi_result_path" : "../result/consolidated/backtest_kpi.png",
-                "lr_sample_kpi_result_path" : "../result/sample/lr_backtest_kpi.png",
-                "lgb_sample_kpi_result_path" : "../result/sample/lgb_backtest_kpi.png",
-                "best_combo_chosen_params_path" : "../result/best_combo_chosen_params.csv",
-                "cv_param_details_path" : "../result/cv_param_details.csv"
+                "lr_sample_kpi_result_path" : "../lr_result/sample/lr_backtest_kpi.png",
+                "lgb_sample_kpi_result_path" : "../lgb_result/sample/lgb_backtest_kpi.png",
+                "best_combo_chosen_params_path" : "../lr_result/best_combo_chosen_params.csv",
+                "cv_param_details_path" : "../lr_result/cv_param_details.csv"
                 }
 }
