@@ -28,6 +28,10 @@
                 "parallel_compute_comment" : "T/F number of virtual machine",
                 "parallel_compute" : "F"
                 },
+    "logisitc_parameters" :{
+                "percentile" : [0.25, 0.3], 
+                "threshold" : [0.15, 0.2]
+                },
     "file_paths": {
                 "result_path" : "../result/",
                 "sp500_historical_list_path" : "../data/sp500_historical_list.csv",

@@ -21,7 +21,7 @@ import warnings; warnings.filterwarnings('ignore')
 from backtest_config import BacktestConfig
 from dataset import BacktestDataset
 
-from tools.metrics import oos_rsquare
+from tools.metrics import oos_rsquare, accuracy
 from tools.balance_data import downsampling
 from tools.model_selection import rolling_valid_split
 from tools.feature_selector import feature_selection
@@ -31,7 +31,7 @@ class BackTest:
         self.backtest_config = BacktestConfig(lr_sample=True)
         self.backtest_dataset = BacktestDataset(lr_sample=True)
 
-        # legal ticker at certain month should be sold for a specific period (fixed length)
+        # legal ticker at certain month should be sold for a specific period (fixed length)# legal ticker at certain month should be sold for a specific period (fixed length)
         self.daily_prc = self.backtest_dataset.get_daily_prc()
         self.counting_max =  self.daily_prc.groupby(['ticker', 'year', 'month'])['date'].count().reset_index()
         # counting_max will be used to validate ticker when selecting top-k tickers
@@ -43,7 +43,8 @@ class BackTest:
         self.df = self.backtest_dataset.get_paper_features()
         self.daily_prc = self.backtest_dataset.get_daily_prc()
         self.pf_daily_trend = pd.DataFrame()
-        #self.df_copy = self.df.copy()
+        self.train_end_date_list = []
+        self.accuracy_record = []
 
          # get necessary config parameters
         self.train_end_date = pd.to_datetime(self.backtest_config.train_end_ym, format='%Y%m')
@@ -57,7 +58,8 @@ class BackTest:
         self.money = self.backtest_config.money
         self.md = self.backtest_config.md
         self.sampler = self.backtest_config.sampler
-        self.percentile, self.threshold = self.backtest_config.get_lr_percentile_threshold()
+        #self.percentile, self.threshold = self.backtest_config.get_lr_percentile_threshold()
+        self.percentile, self.threshold = self.backtest_config.percentile, self.backtest_config.threshold
 
         self.y_cols = [f'fut_ret{col}' for col in self.test_period]
         self.dummy_cols = self.backtest_config.dummy_cols + ['trade_date']
@@ -113,16 +115,88 @@ class BackTest:
             }
         return param
 
+    def get_final_summary_path(self):
+        path = self.backtest_config.get_final_summary_path()
+        if self.md.lower() == 'lr':
+            #return path[:3] + 'lr_' + path[3:]
+            return path
+        if self.md.lower() == 'lgb':
+            return path[:3] + 'lgb_' + path[3:]
+
+    def get_kpi_result_path(self):
+        path = self.backtest_config.get_kpi_result_path()
+        if self.md.lower() == 'lr':
+            #return path[:3] + 'lr_' + path[3:]
+            return path
+        if self.md.lower() == 'lgb':
+            return path[:3] + 'lgb_' + path[3:]
+
+    def set_suptitle(self, fig):
+        if self.md.lower() == 'lr':
+            if self.backtest_config.paper_id.lower() == 'paper1':
+                fig.suptitle('Paper 1. Empirical asset pricing via machine learning | Logistic | (2017,2022)', \
+                            fontsize=25, weight='bold')
+            elif self.backtest_config.paper_id.lower() == 'paper3':
+                fig.suptitle('Paper 3. Dissecting Characteristics Nonparametrically | Logistic | (2017,2022)', \
+                            fontsize=25, weight='bold')
+            elif self.backtest_config.paper_id.lower() == 'paper4':
+                fig.suptitle('Paper 4. Shrinking the cross-section | Logistic | (2017,2022)', \
+                            fontsize=25, weight='bold')
+            elif self.backtest_config.paper_id.lower() == 'paper6':
+                fig.suptitle('Paper 6. Forecasting the Equity Risk Premium - The Role of Technical Indicators | Logistic | (2017,2022)', \
+                            fontsize=25, weight='bold')
+            elif self.backtest_config.paper_id.lower() == 'paper7':
+                fig.suptitle('Paper 7. Deep Learning in Asset Pricing | Logistic | (2017,2022)', \
+                            fontsize=25, weight='bold')
+            elif self.backtest_config.paper_id.lower() == 'paper9':
+                fig.suptitle('Paper 9. Forecasting daily stock market return using dimensionality reduction | Logistic | (2017,2022)', \
+                            fontsize=25, weight='bold')
+            elif self.backtest_config.paper_id.lower() == 'paper11':
+                fig.suptitle('Paper 11. CNNpre d: CNN-base d stock market prediction using a diverse set of variables | Logistic | (2017,2022)', \
+                            fontsize=25, weight='bold')
+            elif self.backtest_config.paper_id.lower() == 'all':
+                fig.suptitle('Paper 1-11 consolidated features | Logistic | (2017,2022)', \
+                            fontsize=25, weight='bold')
+            else:
+                print('invalid paper id')
+        if self.md.lower() == 'lgb':
+            if self.backtest_config.paper_id.lower() == 'paper1':
+                fig.suptitle('Paper 1. Empirical asset pricing via machine learning | XGBoost | (2017,2022)', \
+                            fontsize=25, weight='bold')
+            elif self.backtest_config.paper_id.lower() == 'paper3':
+                fig.suptitle('Paper 3. Dissecting Characteristics Nonparametrically | XGBoost| (2017,2022)', \
+                            fontsize=25, weight='bold')
+            elif self.backtest_config.paper_id.lower() == 'paper4':
+                fig.suptitle('Paper 4. Shrinking the cross-section | XGBoost | (2017,2022)', \
+                            fontsize=25, weight='bold')
+            elif self.backtest_config.paper_id.lower() == 'paper6':
+                fig.suptitle('Paper 6. Forecasting the Equity Risk Premium - The Role of Technical Indicators | XGBoost | (2017,2022)', \
+                            fontsize=25, weight='bold')
+            elif self.backtest_config.paper_id.lower() == 'paper7':
+                fig.suptitle('Paper 7. Deep Learning in Asset Pricing | XGBoost | (2017,2022)', \
+                            fontsize=25, weight='bold')
+            elif self.backtest_config.paper_id.lower() == 'paper9':
+                fig.suptitle('Paper 9. Forecasting daily stock market return using dimensionality reduction | XGBoost | (2017,2022)', \
+                            fontsize=25, weight='bold')
+            elif self.backtest_config.paper_id.lower() == 'paper11':
+                fig.suptitle('Paper 11. CNNpre d: CNN-base d stock market prediction using a diverse set of variables | XGBoost | (2017,2022)', \
+                            fontsize=25, weight='bold')
+            elif self.backtest_config.paper_id.lower() == 'all':
+                fig.suptitle('Paper 1-11 consolidated features | XGBoost | (2017,2022)', \
+                            fontsize=25, weight='bold')
+            else:
+                print('invalid paper id')
+
     # main train 
     def train(self):
-        if self.md.lower() == 'lr': # sort and get top percentile stocks
-            self.choose_by_percentile(self.df, self.percentile, self.threshold)
+        #if self.md.lower() == 'lr': # sort and get top percentile stocks
+        #    self.choose_by_percentile(self.df, self.percentile, self.threshold)
             
         pred_col = 'pred_ret'
 
         # record all the important results in a csv file
         #f = open(f'self.backtest_config.final_summary_path', 'w', encoding='utf-8')
-        f = open(self.backtest_config.get_final_summary_path(), 'w', encoding='utf-8')
+        f = open(self.get_final_summary_path(), 'w', encoding='utf-8')
         f.write('start date,end date,train_valid_period(years),test_period(months),train_period(years),topk,feature_selection,Annual Return,MDD,Calmar Ratio\n')
 
         while self.train_end_date < pd.to_datetime(self.backtest_config.end_date, format='%Y%m'):
@@ -142,7 +216,10 @@ class BackTest:
                 'train_valid_period':[], 'test_period': [],
                 'train_period': [], 'topk': [], 'fs': [], 'mdd': []
             })
-
+            #for combo in product(self.train_valid_period, self.test_period, self.train_period, self.topk, self.fs_tool, range(3), range(3)):
+            #    print(combo)
+            #    print(self.percentile[combo[5]])
+            #    print(self.threshold[combo[6]])
             pf_daily_res = {}
             fund_res = {}
             init_fund = self.money
@@ -150,20 +227,26 @@ class BackTest:
             def objective(trial):
                 param = self.get_cv_hyperparameters(self.md, trial)
                 kpis = [] # the kpis records of each backtest combo
-                for combo in product(self.train_valid_period, self.test_period, self.train_period, self.topk, self.fs_tool):
+                #print(product(self.train_valid_period, self.test_period, self.train_period, self.topk, self.fs_tool, range(3), range(3)))
+                for combo in product(self.train_valid_period, self.test_period, self.train_period, self.topk, self.fs_tool, range(len(self.percentile)), range(len(self.threshold))):
                     print('current combination:', combo)
                     train_valid_period = combo[0]
                     test_period = combo[1]
                     train_period = combo[2]
                     topk = combo[3]
                     fs_tool = combo[4]
+                    percentile = self.percentile[combo[5]]
+                    threshold = self.threshold[combo[6]]
                     valid_period = test_period
                     # change year to month
                     train_valid_period *= 12
                     train_period *= 12
 
+                    df_copy = self.df.copy()
+                    if self.md.lower() == 'lr': # sort and get top percentile stocks
+                        self.choose_by_percentile(df_copy, percentile, threshold)
                     y_col = f'{self.y_col_prefix}{test_period}'
-                    data = self.df[self.dummy_cols + self.feat_cols + [y_col]].copy()
+                    data = df_copy[self.dummy_cols + self.feat_cols + [y_col]].copy()
                     data = data.dropna()
                     actual_train_end_date = self.train_end_date - relativedelta(months=test_period - 1)
                     train_start_date = self.train_end_date - relativedelta(months=train_valid_period)
@@ -191,9 +274,9 @@ class BackTest:
                         if self.backtest_config.paper_id.lower() == 'all':
                             _, select_ids = feature_selection(X_train, y_train, method=fs_tool, k=200)             
                         else:
-                            _, select_ids = feature_selection(X_train, y_train, method=fs_tool, k=25)         
+                            _, select_ids = feature_selection(X_train, y_train, method=fs_tool, k=50)         
                     except:
-                        _, select_ids = feature_selection(X_train, y_train, method=fs_tool, k=5)       
+                        _, select_ids = feature_selection(X_train, y_train, method=fs_tool, k=15)       
 
                     if sum(select_ids) == 0:
                         select_ids = [True for _ in self.feat_cols]
@@ -227,6 +310,7 @@ class BackTest:
                         kpis.append(kpi)
                         if self.debug_mode:
                             self.cv_param_details = self.cv_param_details.append(pd.Series(cv_param_list, index = self.cv_param_details.columns), ignore_index=True)
+                    combo += (percentile, threshold)
                     combo_kpi[combo] = np.mean(kpi)
                 return np.mean(kpis)
 
@@ -249,17 +333,22 @@ class BackTest:
             train_period = combo[2]
             topk = combo[3]
             fs_tool = combo[4]
+            percentile = self.percentile[combo[5]]
+            threshold = self.threshold[combo[6]]
             valid_period = test_period
             # change year to month
             train_valid_period *= 12
             train_period *= 12
 
+            df_copy = self.df.copy()
+            if self.md.lower() == 'lr': # sort and get top percentile stocks
+                self.choose_by_percentile(df_copy, percentile, threshold)
             y_col = f'{self.y_col_prefix}{test_period}'
-            data = self.df[self.dummy_cols + self.feat_cols + [y_col]].copy()
+            data = df_copy[self.dummy_cols + self.feat_cols + [y_col]].copy()
             data = data.dropna()
             actual_train_end_date = self.train_end_date - relativedelta(months=test_period - 1)
-
             train_start_date = self.train_end_date - relativedelta(months=train_valid_period)
+
             #param check
             if train_start_date < pd.to_datetime('200001', format='%Y%m'):
                 raise ValueError('invalid first_train_end_ym value')
@@ -283,9 +372,9 @@ class BackTest:
                 if self.backtest_config.paper_id.lower() == 'all':
                     _, select_ids = feature_selection(X_train, y_train, method=fs_tool, k=200)             
                 else:
-                    _, select_ids = feature_selection(X_train, y_train, method=fs_tool, k=25)         
+                    _, select_ids = feature_selection(X_train, y_train, method=fs_tool, k=50)         
             except:
-                _, select_ids = feature_selection(X_train, y_train, method=fs_tool, k=5) 
+                _, select_ids = feature_selection(X_train, y_train, method=fs_tool, k=15) 
 
             #_, select_ids = X_train[:,select_feature_idx], select_feature_idx
             if sum(select_ids) == 0:
@@ -306,10 +395,10 @@ class BackTest:
 
             outputs = test_data[self.dummy_cols + [y_col]].copy()
             outputs[pred_col] = model.predict(X_test)
-            #outputs['fut_ret'] = self.df_copy.query(f'date == "{predict_date}"')['fut_ret1']
+            self.accuracy_record.append(accuracy(model.predict(X_test), y_test))
+            self.train_end_date_list.append(self.train_end_date)
             # descending sort values to select topk-stocks
             outputs = outputs.sort_values(by=[pred_col], ascending=False)
-            #outputs = outputs.sort_values(by=[pred_col, 'fut_ret'], ascending=[False, False])
             # find out the legal ticker will have how many days recording during `test_period` months
             ideal_ser_num = sum([self.counting_max[(pdt.year, pdt.month)] for pdt in predict_dates])
             # equally separate investment to `topk` folds
@@ -348,6 +437,7 @@ class BackTest:
                     # record daily price for this ticker, this list will store value changes for each top-k ticker
                     # it will be summed in next code to represent the portfolio changes
                     if sum(np.isnan(purchase_amount * ticker_ts['adjclose'].values)) > 0:
+                        print(ticker_name)
                         idx += 1
                         continue
                     ticker_recs_this_month.append(purchase_amount * ticker_ts['adjclose'].values)
@@ -408,7 +498,7 @@ class BackTest:
             self.cv_param_details.to_csv(self.backtest_config.cv_param_details_path)
 
     def plot(self):
-        # output 3 kpi plots
+         # output 3 kpi plots
         t1, t2 = self.pf_daily_trend['date'].min(), self.pf_daily_trend['date'].max()
         y_num = (t2 - t1).days /365
 
@@ -455,8 +545,7 @@ class BackTest:
         # Draw plots
         sns.set_theme(palette=sns.color_palette("Set1"))
         fig, ax = plt.subplots(nrows=3, ncols=1, figsize=(20, 15))
-        fig.suptitle('Sample Paper 9. Forecasting daily stock market return using dimensionality reduction | Logistic | (201701, 201705)', \
-                        fontsize=25, weight='bold')
+        self.set_suptitle(fig)
         ax[0].plot(np.arange(len(self.pf_daily_trend['date'])), self.pf_daily_trend['val'], label='Porfolio')
         ax[0].plot(np.arange(len(spy_daily['date'])), spy_daily['value'], label='SPY')
         ax[0].axhline(self.backtest_config.money, ls='--', c='grey', alpha=0.5)
@@ -524,7 +613,25 @@ class BackTest:
         ax[2].legend(fontsize=16)
 
         plt.tight_layout()
-        plt.savefig(self.backtest_config.get_kpi_result_path(), format='png')
+        plt.savefig(self.get_kpi_result_path(), format='png')
+        plt.show()
+        plt.close()
+
+        fig, ax = plt.subplots(nrows=1, ncols=1, figsize=(20, 15))
+
+        ax.plot(
+            np.arange(len(self.train_end_date_list)), self.accuracy_record, color='teal')
+        ax.set_xlabel('Train End Date', fontweight='bold', fontsize=18)
+        ax.set_ylabel('Accuracy', fontweight='bold', fontsize=18)
+        ax.set_title(f'Model Accuracy', fontweight='bold', fontsize=22, loc='left')
+        #ax.set_xticklabels(self.train_end_date_list[::10])
+        ax.axhline(y=0, ls='--', color='gray', alpha=0.5)
+        y_scaler = np.linspace(0, 1, 6)
+        ax.axhline(y=0, ls='--', color='gray', alpha=0.5)
+        ax.set_yticks(y_scaler)
+        ax.set_yticklabels([f'{round(v * 100)}%' for v in y_scaler])
+        path = self.get_kpi_result_path()[:self.get_kpi_result_path().rfind('/')+1] + 'accuracy.png'
+        plt.savefig(path, format='png')
         plt.show()
         plt.close()
 
