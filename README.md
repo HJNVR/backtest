@@ -107,11 +107,15 @@ Definitions of configurations:
                 },
     "common_settings" :{
                 "paper_id_comment" : "choose from ['all', 'paper1', 'paper3', 'paper4', 'paper6', 'paper7', 'paper9', 'paper11']",
-                "paper_id" : "all",
+                "paper_id" : "paper3",
                 "debug_mode_comment" : "T/F",
                 "debug_mode" : "F",
                 "parallel_compute_comment" : "T/F number of virtual machine",
                 "parallel_compute" : "F"
+                },
+    "logisitc_parameters" :{
+                "percentile" : [0.25, 0.3], 
+                "threshold" : [0.15, 0.2]
                 },
     "file_paths": {
                 "result_path" : "../result/",
@@ -150,7 +154,6 @@ Definitions of configurations:
                 "cv_param_details_path" : "../lr_result/cv_param_details.csv"
                 }
 }
-
 
 ```
 
