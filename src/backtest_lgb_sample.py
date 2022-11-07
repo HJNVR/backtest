@@ -21,7 +21,7 @@ import warnings; warnings.filterwarnings('ignore')
 from backtest_config import BacktestConfig
 from dataset import BacktestDataset
 
-from tools.metrics import oos_rsquare
+from tools.metrics import oos_rsquare, accuracy
 from tools.balance_data import downsampling
 from tools.model_selection import rolling_valid_split
 from tools.feature_selector import feature_selection
@@ -43,6 +43,8 @@ class BackTest:
         self.df = self.backtest_dataset.get_paper_features()
         self.daily_prc = self.backtest_dataset.get_daily_prc()
         self.pf_daily_trend = pd.DataFrame()
+        self.train_end_date_list = []
+        self.accuracy_record = []
 
          # get necessary config parameters
         self.train_end_date = pd.to_datetime(self.backtest_config.train_end_ym, format='%Y%m')
@@ -56,7 +58,7 @@ class BackTest:
         self.money = self.backtest_config.money
         self.md = self.backtest_config.md
         self.sampler = self.backtest_config.sampler
-        self.percentile, self.threshold = self.backtest_config.get_lr_percentile_threshold()
+        self.percentile, self.threshold = self.backtest_config.percentile, self.backtest_config.threshold
 
         self.y_cols = [f'fut_ret{col}' for col in self.test_period]
         self.dummy_cols = self.backtest_config.dummy_cols + ['trade_date']
@@ -305,6 +307,8 @@ class BackTest:
 
             outputs = test_data[self.dummy_cols + [y_col]].copy()
             outputs[pred_col] = model.predict(X_test)
+            #self.accuracy_record.append(model.score(X_test, y_test))
+            #self.train_end_date_list.append(self.train_end_date)
             # descending sort values to select topk-stocks
             outputs = outputs.sort_values(by=[pred_col], ascending=False)
             #outputs = outputs.sort_values(by=[pred_col, 'fut_ret'], ascending=[False, False])
@@ -522,9 +526,33 @@ class BackTest:
         ax[2].legend(fontsize=16)
 
         plt.tight_layout()
+        plt.savefig(self.backtest_config.lgb_sample_kpi_result_path, format='png')
+        plt.show()
+        plt.close()
+        '''
+        fig, ax = plt.subplots(nrows=1, ncols=1, figsize=(20, 15))
+
+        ax.plot(
+            np.arange(len(self.train_end_date_list)), self.accuracy_record, color='teal')
+        ax.set_xlabel('Train End Date', fontweight='bold', fontsize=18)
+        ax.set_ylabel('Accuracy', fontweight='bold', fontsize=18)
+        ax.set_title(f'Model Accuracy', fontweight='bold', fontsize=22, loc='left')
+        #ax.set_xticklabels(self.train_end_date_list[::10])
+        ax.axhline(y=0, ls='--', color='gray', alpha=0.5)
+        y_scaler = np.linspace(0, 1, 6)
+        ax.axhline(y=0, ls='--', color='gray', alpha=0.5)
+        ax.set_yticks(y_scaler)
+        ax.set_yticklabels([f'{round(v * 100)}%' for v in y_scaler])
+        path = self.get_kpi_result_path()[:self.get_kpi_result_path().rfind('/')+1] + 'accuracy.png'
+        plt.savefig(path, format='png')
+        plt.show()
+        plt.close()
+
+        plt.tight_layout()
         plt.savefig(self.backtest_config.get_kpi_result_path(), format='png')
         plt.show()
         plt.close()
+        '''
 
 if __name__ == "__main__":
     start = time.time()

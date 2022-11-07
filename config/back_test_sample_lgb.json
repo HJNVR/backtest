@@ -8,7 +8,7 @@
                 "comment": "first_train_end_ym should be at least 2000 + the max of train_valid_period",
                 "first_train_end_ym": "201701",
                 "comment" : "end_date cannot beyond the last date of dataframe", 
-                "end_date": "201705",
+                "end_date": "201702",
                 "tune_sampler": "tpe",
                 "train_valid_period": [16, 17],
                 "tune_trials": 1,
